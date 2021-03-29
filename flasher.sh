@@ -179,6 +179,11 @@ backup () {
 }
 
 main () {
+  print "THIS SCRIPT IS NOT FOR ACTUAL USE YET, ONLY RUN ON TEST BOARDS" red
+  read -r -p "ARE YOU SURE YOU WANT TO CONTINUE? [Y/n]: " output
+    if [ "$output" = 'N' ] || [ "$output" = 'n' ] || [ "$output" = '' ]; then
+      exit 1
+    else
   if [[ $(who am i) =~ \([-a-zA-Z0-9\.]+\)$ ]]; then
     print "SSH detected checking if inside tmux" yellow
     if [ "$TERM" = "screen" ]; then
@@ -202,6 +207,8 @@ main () {
   fi
   backup
   combiner
+fi
 }
 
 main
+
