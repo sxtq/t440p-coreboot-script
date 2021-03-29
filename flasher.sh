@@ -5,6 +5,22 @@ chipbot=W25Q64
 
 current_dir=/home/six/t4
 
+while test "$#" -gt 0; do
+  case "$1" in
+    -h|--help)
+      echo "  -h, --help                   show list of startup flags"
+      echo "  -r, --restore                This will restore the original bios back to the chips"
+      exit 0
+      ;;
+    -r|--restore)
+      shift
+      echo "Restoreing to original bios"
+      export restore=1
+      shift
+      ;;
+  esac
+done
+
 #Used for printing text on the screen
 print () {
   no_color='\033[0m'
@@ -84,7 +100,7 @@ setup () {
     git submodule update --init --checkout
 
     cd "$current_dir/coreboot/util/ifdtool" && make
-    ./ifdtool -x "$current_dir/backup/t440p-original.rom"
+    ./ifdtool -x "$current_dir/backup/original.rom"
     mv flashregion_0_flashdescriptor.bin "$current_dir/setup/ifd.bin"
     mv flashregion_2_intel_me.bin "$current_dir/setup/me.bin"
     mv flashregion_3_gbe.bin "$current_dir/setup/gbe.bin"
@@ -99,16 +115,16 @@ setup () {
 }
 
 combiner () {
-  if [ !  -f "$current_dir/backup/t440p-original.rom" ] && [ -f "$current_dir/backup/8mb_backup1.bin" ] && [ -f "$current_dir/backup/4mb_backup1.bin" ]; then
-    cat "$current_dir/backup/8mb_backup1.bin" "$current_dir/backup/4mb_backup1.bin" > "$current_dir/backup/t440p-original.rom"
-    print "Both backups found and combined into t440p-original.rom" green
+  if [ !  -f "$current_dir/backup/original.rom" ] && [ -f "$current_dir/backup/8mb_backup1.bin" ] && [ -f "$current_dir/backup/4mb_backup1.bin" ]; then
+    cat "$current_dir/backup/8mb_backup1.bin" "$current_dir/backup/4mb_backup1.bin" > "$current_dir/backup/original.rom"
+    print "Both backups found and combined into original.rom" green
     setup
-  elif [  -f "$current_dir/backup/t440p-original.rom" ]; then
-    print "t440p-original.rom was found" green
+  elif [  -f "$current_dir/backup/original.rom" ]; then
+    print "original.rom was found" green
     setup
-  elif [ !  -f "$current_dir/backup/t440p-original.rom" ] && [ ! -f "$current_dir/backup/8mb_backup1.bin" ] && [ -f "$current_dir/backup/4mb_backup1.bin" ]; then
+  elif [ !  -f "$current_dir/backup/original.rom" ] && [ ! -f "$current_dir/backup/8mb_backup1.bin" ] && [ -f "$current_dir/backup/4mb_backup1.bin" ]; then
     print "Bottom backup is needed to complete the install" red
-  elif [ !  -f "$current_dir/backup/t440p-original.rom" ] && [ -f "$current_dir/backup/8mb_backup1.bin" ] && [ ! -f "$current_dir/backup/4mb_backup1.bin" ]; then
+  elif [ !  -f "$current_dir/backup/original.rom" ] && [ -f "$current_dir/backup/8mb_backup1.bin" ] && [ ! -f "$current_dir/backup/4mb_backup1.bin" ]; then
     print "Top backup is needed to complete the install" red
   fi
 }
@@ -180,6 +196,23 @@ backup () {
   fi
 }
 
+restoref () {
+  print "Restoring from backup" red
+  mkdir "$current_dir/setup"
+  rm -v "$current_dir/setup/top.rom" "$current_dir/setup/bottom.rom"
+  if [ -f "$current_dir/backup/original.rom" ]; then
+    read -r -p "Would you like to flash using $current_dir/backup/original.rom? [Y/n]: " output
+    if [ "$output" = 'N' ] || [ "$output" = 'n' ]; then
+      exit 1
+    else
+      print "Seperating original.rom into top.rom and bottom.rom" yellow
+      dd if="$current_dir/backup/"original.rom of="$current_dir/setup/"bottom.rom bs=1M count=8
+      dd if="$current_dir/backup/"original.rom of="$current_dir/setup/"top.rom bs=1M skip=8
+      flash
+    fi
+  fi
+}
+
 main () {
   print "THIS SCRIPT IS NOT FOR ACTUAL USE YET, ONLY RUN ON TEST BOARDS" red
   read -r -p "ARE YOU SURE YOU WANT TO CONTINUE? [Y/n]: " output
@@ -206,6 +239,10 @@ main () {
   print "   Top chip ID: $chiptop" yellow
   print "Bottom chip ID: $chipbot" yellow
   print "Edit the IDs if incorrect inside the script" yellow
+  if [ "$restore" = "1" ]; then
+    restoref
+    exit 1
+  fi
   if [ -f "$current_dir/setup/coreboot.rom" ]; then
     print "Coreboot.rom found in setup directory starting flasher" yellow
     flash
