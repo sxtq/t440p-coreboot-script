@@ -50,6 +50,7 @@ flash () {
         flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 -w "$current_dir/setup/top.rom"
         print "Bottom is done flashing" green
         print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
+        exit 1
       else
         print "Top rom not found in setup folder exiting" red
         exit 1
@@ -66,6 +67,7 @@ flash () {
         flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 -w "$current_dir/setup/bottom.rom"
         print "Bottom is done flashing" green
         print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
+        exit 1
       else
         print "Bottom rom not found in setup folder exiting" red
         exit 1
