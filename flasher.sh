@@ -64,12 +64,13 @@ flash () {
 setup () {
     if [ -f "$current_dir/setup/mrc.bin" ] && [  -f "$current_dir/setup/me.bin" ] && [ -f "$current_dir/setup/gbe.bin" ] && [ -f "$current_dir/setup/mrc.bin" ]; then
       print "All files needed found in setup checking for rom files"
-      if [ -f "$current_dir/setup/top.rom" ] && [ -f "$current_dir/setup/bottom.rom" ]; then
-        print "Top.rom and bottom.rom found in setup directory starting flasher" green
+      if [ -f "$current_dir/setup/coreboot.rom" ]; then
+        print "Coreboot.rom found in setup directory starting flasher" green
         flash
       else
-        print "coreboot.rom was not found in the setup directory please copy it to..." red
-        print "$current_dir/setup/" red
+        print "coreboot.rom was not found in the setup directory" red
+        print "Please copy coreboot.rom to: $current_dir/setup/" red
+        return 0
       fi
     fi
     mkdir "$current_dir/setup"
@@ -104,6 +105,7 @@ combiner () {
     setup
   elif [  -f "$current_dir/backup/t440p-original.rom" ]; then
     print "t440p-original.rom was found" green
+    setup
   elif [ !  -f "$current_dir/backup/t440p-original.rom" ] && [ ! -f "$current_dir/backup/8mb_backup1.bin" ] && [ -f "$current_dir/backup/4mb_backup1.bin" ]; then
     print "Bottom backup is needed to complete the install" red
   elif [ !  -f "$current_dir/backup/t440p-original.rom" ] && [ -f "$current_dir/backup/8mb_backup1.bin" ] && [ ! -f "$current_dir/backup/4mb_backup1.bin" ]; then
@@ -193,14 +195,17 @@ main () {
       exit 1
     fi
   else
-    print "Not using ssh tmux not required" green
+    print "Not using ssh or inside tmux" green
   fi
   if [[ "$EUID" = 0 ]]; then
-    print "Ran as root check" green
+    print "Script was ran as root" green
   else
     print "Run as root required" red
     exit 1
   fi
+  print "   Top chip ID: $chiptop" yellow
+  print "Bottom chip ID: $chipbot" yellow
+  print "Edit the IDs if incorrect inside the script" yellow
   if [ -f "$current_dir/setup/coreboot.rom" ]; then
     print "Coreboot.rom found in setup directory starting flasher" yellow
     flash
@@ -211,4 +216,3 @@ fi
 }
 
 main
-
