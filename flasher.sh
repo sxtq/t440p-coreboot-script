@@ -2,7 +2,6 @@
 
 chiptop=W25Q32
 chipbot=W25Q64
-
 current_dir=/home/six/t4
 
 while test "$#" -gt 0; do
@@ -36,36 +35,37 @@ print () {
 
 flash () {
   if [ -f "$current_dir/setup/coreboot.rom" ] && [ ! -f "$current_dir/setup/bottom.rom" ] && [ ! -f "$current_dir/setup/top.rom" ]; then
+    print "Seperating coreboot.rom into top.rom and bottom.rom" yellow
     dd if="$current_dir/setup/"coreboot.rom of="$current_dir/setup/"bottom.rom bs=1M count=8
     dd if="$current_dir/setup/"coreboot.rom of="$current_dir/setup/"top.rom bs=1M skip=8
   fi
   if flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 | grep "$chiptop"; then
-    print "DETECTED CHIP $chiptop" green
+    print "DETECTED CHIP $chiptop (TOP)" green
     read -r -p "Would you like to flash the top chip? [Y/n]: " output
     if [ "$output" = 'N' ] || [ "$output" = 'n' ]; then
       exit 1
     else
       if [  -f "$current_dir/setup/top.rom" ]; then
-        echo "Top rom file found in setup folder starting flasher"
+        print "Top rom file found in setup folder, flashing..." green
         flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 -w "$current_dir/setup/top.rom"
         print "Bottom is done flashing" green
-        return 0
+        print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
       else
-        echo "Top rom not found in setup folder exiting"
+        print "Top rom not found in setup folder exiting" red
         exit 1
       fi
     fi
   elif flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 | grep "$chipbot"; then
-    print "DETECTED CHIP $chiptop" green
+    print "DETECTED CHIP $chiptop (BOTTOM)" green
     read -r -p "Would you like to flash the bottom chip? [Y/n]: " output
     if [ "$output" = 'N' ] || [ "$output" = 'n' ]; then
       exit 1
     else
       if [  -f "$current_dir/setup/bottom.rom" ]; then
-        echo "Bottom rom file found in setup folder starting flasher"
+        print "Bottom rom file found in setup folder, flashing..." green
         flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 -w "$current_dir/setup/bottom.rom"
         print "Bottom is done flashing" green
-        return 0
+        print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
       else
         print "Bottom rom not found in setup folder exiting" red
         exit 1
@@ -73,6 +73,8 @@ flash () {
     fi
   else
     print "No chip was found" red
+    print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
+    print "[WARNING] RESEAT THE CLIP AND TRY AGAIN" red
     exit 1
   fi
 }
@@ -101,9 +103,9 @@ setup () {
 
     cd "$current_dir/coreboot/util/ifdtool" && make
     ./ifdtool -x "$current_dir/backup/original.rom"
-    mv flashregion_0_flashdescriptor.bin "$current_dir/setup/ifd.bin"
-    mv flashregion_2_intel_me.bin "$current_dir/setup/me.bin"
-    mv flashregion_3_gbe.bin "$current_dir/setup/gbe.bin"
+    mv -v flashregion_0_flashdescriptor.bin "$current_dir/setup/ifd.bin"
+    mv -v flashregion_2_intel_me.bin "$current_dir/setup/me.bin"
+    mv -v flashregion_3_gbe.bin "$current_dir/setup/gbe.bin"
 
     make -C "$current_dir/coreboot/util/cbfstool"
     cd "$current_dir/coreboot/util/chromeos" || return
@@ -242,10 +244,6 @@ main () {
   if [ "$restore" = "1" ]; then
     restoref
     exit 1
-  fi
-  if [ -f "$current_dir/setup/coreboot.rom" ]; then
-    print "Coreboot.rom found in setup directory starting flasher" yellow
-    flash
   fi
   backup
   combiner
