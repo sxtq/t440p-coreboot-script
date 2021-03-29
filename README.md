@@ -1,5 +1,5 @@
 # this is very experimintal and should not be used yet.
-# i have tested it and it does work but im not sure its read yfor public use yet
+# i have tested it and it does work but im not sure its ready for public use yet
 # t440p-coreboot-script
 This script will do what is needed to coreboot a t440p with exception of building the coreboot.rom, it will give you the needed files but it wont build the rom yet.
 
