@@ -34,11 +34,27 @@ print () {
 }
 
 flash () {
-  if [ -f "$current_dir/setup/coreboot.rom" ] && [ ! -f "$current_dir/setup/bottom.rom" ] && [ ! -f "$current_dir/setup/top.rom" ]; then
-    print "Seperating coreboot.rom into top.rom and bottom.rom" yellow
-    dd if="$current_dir/setup/"coreboot.rom of="$current_dir/setup/"bottom.rom bs=1M count=8
-    dd if="$current_dir/setup/"coreboot.rom of="$current_dir/setup/"top.rom bs=1M skip=8
+  if [ -f "$current_dir/setup/coreboot.rom" ] && [ ! -f "$current_dir/setup/bottom.rom" ] || [ ! -f "$current_dir/setup/top.rom" ]; then
+    read -r -p "Would you like to use $current_dir/setup/coreboot.rom? [Y/n]: " output
+    if [ "$output" = 'N' ] || [ "$output" = 'n' ]; then
+      read -r -p "Please enter the full path to coreboot.rom [/path/to/coreboot.rom]: " path_to_rom
+    else
+      path_to_rom="$current_dir/setup/coreboot.rom"
+    fi
+  elif [ ! -f "$current_dir/setup/coreboot.rom" ] && [ ! -f "$current_dir/setup/bottom.rom" ] || [ ! -f "$current_dir/setup/top.rom" ]; then
+    read -r -p "Please enter the full path to coreboot.rom [/path/to/coreboot.rom]: " path_to_rom
   fi
+  if [ ! -f "$current_dir/setup/bottom.rom" ] || [ ! -f "$current_dir/setup/top.rom" ]; then
+    if [ -z "$path_to_rom" ]; then
+      print "No path specified and missing top/bottom.rom" red
+    else
+      dd if="$path_to_rom" of="$current_dir/setup/"bottom.rom bs=1M count=8
+      dd if="$path_to_rom" of="$current_dir/setup/"top.rom bs=1M skip=8
+    fi
+  else
+    print "Found top.rom and bottom.rom in setup continuing" green
+  fi
+
   if flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 | grep "$chiptop"; then
     print "DETECTED CHIP $chiptop (TOP)" green
     read -r -p "Would you like to flash the top chip? [Y/n]: " output
@@ -74,7 +90,7 @@ flash () {
       fi
     fi
   else
-    print "No chip was found" red
+    print "No chip was found, make sure the clip is connected" red
     print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
     print "[WARNING] RESEAT THE CLIP AND TRY AGAIN" red
     exit 1
