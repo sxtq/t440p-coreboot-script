@@ -64,7 +64,7 @@ flash () {
       if [  -f "$current_dir/setup/top.rom" ]; then
         print "Top rom file found in setup folder, flashing..." green
         flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 -w "$current_dir/setup/top.rom"
-        print "Bottom is done flashing" green
+        print "Top is done flashing" green
         print "[WARNING] POWER OFF THE PI BEFORE REMOVING THE CLIP OFF THE CHIP" red
         exit 1
       else
