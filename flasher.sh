@@ -2,7 +2,7 @@
 
 chiptop=W25Q32
 chipbot=W25Q64
-current_dir=/home/six/t4
+current_dir="$HOME/t4"
 
 while test "$#" -gt 0; do
   case "$1" in
