@@ -256,6 +256,7 @@ main () {
     print "Run as root required" red
     exit 1
   fi
+  print "Current directory $current_dir" yellow
   print "   Top chip ID: $chiptop" yellow
   print "Bottom chip ID: $chipbot" yellow
   print "Edit the IDs if incorrect inside the script" yellow
