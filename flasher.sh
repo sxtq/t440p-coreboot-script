@@ -109,7 +109,7 @@ setup () {
         return 0
       fi
     fi
-    mkdir "$current_dir/setup"
+    mkdir -p "$current_dir/setup"
     if [ -f "$current_dir/coreboot" ]; then
       print "coreboot directory found" green
     else
@@ -154,7 +154,7 @@ backup () {
     print "Backups found continuing" green
     return 0
   fi
-  mkdir "$current_dir/backup"
+  mkdir -p "$current_dir/backup"
   if flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 | grep "$chiptop"; then
     print "DETECTED CHIP $chiptop (TOP)" green
     if [  -f backup/4mb_backup1.bin ]; then
@@ -218,7 +218,7 @@ backup () {
 
 restoref () {
   print "Restoring from backup" red
-  mkdir "$current_dir/setup"
+  mkdir -p "$current_dir/setup"
   rm -v "$current_dir/setup/top.rom" "$current_dir/setup/bottom.rom"
   if [ -f "$current_dir/backup/original.rom" ]; then
     read -r -p "Would you like to flash using $current_dir/backup/original.rom? [Y/n]: " output
