@@ -138,6 +138,7 @@ combiner () {
   if [ !  -f "$current_dir/backup/original.rom" ] && [ -f "$current_dir/backup/8mb_backup1.bin" ] && [ -f "$current_dir/backup/4mb_backup1.bin" ]; then
     cat "$current_dir/backup/8mb_backup1.bin" "$current_dir/backup/4mb_backup1.bin" > "$current_dir/backup/original.rom"
     print "Both backups found and combined into original.rom" green
+    print "You should make a backup of this entire backup directory" yellow
     setup
   elif [  -f "$current_dir/backup/original.rom" ]; then
     print "original.rom was found" green
